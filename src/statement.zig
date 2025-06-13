@@ -34,10 +34,12 @@ pub fn prepare_statement(input: []const u8, stmt: *Statement) PrepareResult {
             args += 1;
         }
         if (tokenizer.next()) |arg| {
+            stmt.row_to_work_with.username_length = arg.len;
             std.mem.copyForwards(u8, stmt.row_to_work_with.username[0..arg.len], arg);
             args += 1;
         }
         if (tokenizer.next()) |arg| {
+            stmt.row_to_work_with.email_length = arg.len;
             std.mem.copyForwards(u8, stmt.row_to_work_with.email[0..arg.len], arg);
             args += 1;
         }
@@ -63,7 +65,7 @@ pub fn execute_statement(stmt: *Statement) void {
         },
         .Insert => {
             print("Executing INSERT statement.\n", .{});
-            print("insert into users values({}, {s}, {s})\n", .{ stmt.row_to_work_with.id, stmt.row_to_work_with.username, stmt.row_to_work_with.email });
+            print("insert into users values({}, {s}, {s})\n", .{ stmt.row_to_work_with.id, stmt.row_to_work_with.username[0..stmt.row_to_work_with.username_length], stmt.row_to_work_with.email[0..stmt.row_to_work_with.email_length] });
         },
         .Update => {
             print("Executing UPDATE statement.\n", .{});
