@@ -1,12 +1,13 @@
 const std = @import("std");
+
 const print = std.debug.print;
 
 const InputBuffer = @import("input.zig").InputBuffer;
 const Statement = @import("statement.zig").Statement;
+const MetaCommandResult = @import("meta_command.zig").MetaCommandResult;
 const prepare_statement = @import("statement.zig").prepare_statement;
 const execute_statement = @import("statement.zig").execute_statement;
 const do_meta_command = @import("meta_command.zig").do_meta_command;
-const MetaCommandResult = @import("meta_command.zig").MetaCommandResult;
 
 fn printPrompt() void {
     print("db > ", .{});
