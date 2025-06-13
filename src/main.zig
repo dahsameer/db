@@ -34,7 +34,7 @@ pub fn main() !void {
     defer input_buffer.deinit();
 
     while (true) {
-        var stmt = Statement{ .stmt_type = .Select };
+        var stmt: Statement = undefined;
         printPrompt();
         readInput(&input_buffer) catch |err| switch (err) {
             error.EndOfStream => {
