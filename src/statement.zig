@@ -1,6 +1,6 @@
 const std = @import("std");
 const print = std.debug.print;
-const Row = @import("database.zig").Row;
+const db = @import("database.zig");
 
 pub const StatementType = enum {
     Select,
@@ -15,9 +15,16 @@ pub const PrepareResult = enum {
     UnrecognizedStatement,
 };
 
+pub const ExecuteResult = enum {
+    Success,
+    TableFull,
+    DuplicateKey,
+    NotFound,
+};
+
 pub const Statement = struct {
     stmt_type: StatementType,
-    row_to_work_with: Row,
+    row_to_work_with: db.Row,
 };
 
 pub fn prepare_statement(input: []const u8, stmt: *Statement) PrepareResult {
@@ -58,14 +65,14 @@ pub fn prepare_statement(input: []const u8, stmt: *Statement) PrepareResult {
     }
 }
 
-pub fn execute_statement(stmt: *Statement) void {
+pub fn execute_statement(stmt: *Statement, table: *db.Table) void {
     switch (stmt.stmt_type) {
         .Select => {
-            print("Executing SELECT statement.\n", .{});
+            return execute_select(table);
         },
         .Insert => {
-            print("Executing INSERT statement.\n", .{});
             print("insert into users values({}, {s}, {s})\n", .{ stmt.row_to_work_with.id, stmt.row_to_work_with.username[0..stmt.row_to_work_with.username_length], stmt.row_to_work_with.email[0..stmt.row_to_work_with.email_length] });
+            return execute_insert(stmt, table);
         },
         .Update => {
             print("Executing UPDATE statement.\n", .{});
@@ -73,5 +80,24 @@ pub fn execute_statement(stmt: *Statement) void {
         .Delete => {
             print("Executing DELETE statement.\n", .{});
         },
+    }
+}
+
+pub fn execute_insert(stmt: *Statement, table: *db.Table) ExecuteResult {
+    if (table.num_rows >= db.TABLE_MAX_ROWS) {
+        return .TableFull;
+    }
+    var row_to_insert = stmt.row_to_work_with;
+    db.serialize_row(&row_to_insert, db.row_slot(table, table.num_rows));
+    table.num_rows += 1;
+    return .Success;
+}
+
+pub fn execute_select(table: *db.Table) void {
+    var row: db.Row = undefined;
+    for (0..table.num_rows) |i| {
+        const r = db.row_slot(table, i);
+        db.deserialize_row(r, &row);
+        print("Row {}: id={}, username={}, email={}\n", .{ i, row.id, row.username[0..row.username_length], row.email[0..row.email_length] });
     }
 }

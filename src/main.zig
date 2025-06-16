@@ -8,6 +8,7 @@ const MetaCommandResult = @import("meta_command.zig").MetaCommandResult;
 const prepare_statement = @import("statement.zig").prepare_statement;
 const execute_statement = @import("statement.zig").execute_statement;
 const do_meta_command = @import("meta_command.zig").do_meta_command;
+const db = @import("database.zig");
 
 fn printPrompt() void {
     print("db > ", .{});
@@ -30,6 +31,20 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
+
+    const table = try allocator.create(db.Table);
+    table.num_rows = 0;
+    for (0..db.TABLE_MAX_PAGES) |i| {
+        table.pages[i] = null;
+    }
+    defer {
+        for (0..db.TABLE_MAX_PAGES) |i| {
+            if (table.pages[i] != null) {
+                std.heap.page_allocator.free(table.pages[i]);
+            }
+        }
+        allocator.destroy(table);
+    }
 
     var input_buffer = InputBuffer.init(allocator);
     defer input_buffer.deinit();
@@ -76,6 +91,6 @@ pub fn main() !void {
                 continue;
             },
         }
-        execute_statement(&stmt);
+        execute_statement(&stmt, table);
     }
 }
