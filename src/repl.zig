@@ -21,11 +21,19 @@ const Statement = struct {
     row_to_insert: Row,
 };
 
-fn do_meta_command(input: []const u8) bool {
+const MetaCommandResult = enum { Exit, Success, UnrecognizedCommand };
+
+fn do_meta_command(input: []const u8, writer: anytype) !MetaCommandResult {
     if (std.mem.eql(u8, input, ".exit")) {
-        return true;
+        return .Exit;
+    } else if (std.mem.eql(u8, input, ".help")) {
+        try writer.print("Available commands:\n", .{});
+        try writer.print(".exit - Exit the program\n", .{});
+        try writer.print(".help - Show this help message\n", .{});
+        return .Success;
+    } else {
+        return .UnrecognizedCommand;
     }
-    return false;
 }
 
 fn prepare_statement(input: []const u8, statement: *Statement) PrepareResult {
@@ -136,13 +144,20 @@ pub fn start(table: *Table) !void {
         const command = std.mem.trim(u8, raw_input, " \r\n\t");
 
         if (command.len > 0 and command[0] == '.') {
-            if (do_meta_command(command)) {
-                try stdout.print("Bye!\n", .{});
-                return;
-            } else {
-                try stdout.print("Unrecognized command '{s}'.\n", .{command});
+            const meta_result = try do_meta_command(command, stdout);
+            switch (meta_result) {
+                .Success => {
+                    continue;
+                },
+                .Exit => {
+                    try stdout.print("Exiting the program.\n", .{});
+                    return;
+                },
+                else => {
+                    try stdout.print("Unrecognized command '{s}'.\n", .{command});
+                    continue;
+                },
             }
-            continue;
         }
 
         var statement: Statement = undefined;
