@@ -2,7 +2,7 @@ const std = @import("std");
 const Row = @import("row.zig").Row;
 
 pub const PAGE_SIZE: u16 = 4096;
-pub const RowSize: u16 = @sizeOf(Row);
+pub const RowSize: u16 = 4 + 32 + 255;
 pub const ROWS_PER_PAGE: u16 = PAGE_SIZE / RowSize;
 pub const TABLE_MAX_PAGES: u16 = 100;
 
