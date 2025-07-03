@@ -5,7 +5,7 @@ const pager_consts = @import("pager.zig");
 const Table = @import("table.zig").Table;
 const Row = @import("row.zig").Row;
 const get_page = @import("pager.zig").get_page;
-const row_size = @sizeOf(Row);
+const row_size = 4 + 32 + 255;
 
 var gpa = std.heap.page_allocator;
 
