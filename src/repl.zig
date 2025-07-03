@@ -27,9 +27,7 @@ fn do_meta_command(input: []const u8, writer: anytype) !MetaCommandResult {
     if (std.mem.eql(u8, input, ".exit")) {
         return .Exit;
     } else if (std.mem.eql(u8, input, ".help")) {
-        try writer.print("Available commands:\n", .{});
-        try writer.print(".exit - Exit the program\n", .{});
-        try writer.print(".help - Show this help message\n", .{});
+        try writer.print("Available commands:\n.exit - Exit the program\n.help - Show this help message\n", .{});
         return .Success;
     } else {
         return .UnrecognizedCommand;
